@@ -1,0 +1,10 @@
+[server]
+maxUploadSize = 200
+maxMessageSize = 200
+headless = true
+
+[browser]
+serverPort = 8501
+
+[runner]
+fastReruns = false

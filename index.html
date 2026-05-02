@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NotesMind</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #1a1a1a;
+            padding: 24px 16px;
+            border-right: 1px solid #2a2a2a;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sidebar h1 {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar p {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .stat-box {
+            background: #222;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .clear-btn {
+            margin-top: auto;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: #e0e0e0;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .clear-btn:hover {
+            background: #333;
+        }
+
+        /* Chat area */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .msg {
+            display: flex;
+            gap: 12px;
+            max-width: 800px;
+        }
+
+        .msg.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .user .avatar {
+            background: #2563eb;
+        }
+
+        .assistant .avatar {
+            background: #7c3aed;
+        }
+
+        .bubble {
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+
+        .user .bubble {
+            background: #1e3a5f;
+            border-color: #2563eb33;
+        }
+
+        .sources {
+            margin-top: 10px;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 10px;
+        }
+
+        .sources-toggle {
+            font-size: 12px;
+            color: #888;
+            cursor: pointer;
+        }
+
+        .sources-toggle:hover {
+            color: #aaa;
+        }
+
+        .source-item {
+            background: #111;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+            display: none;
+        }
+
+        .source-item.visible {
+            display: block;
+        }
+
+        .source-file {
+            color: #7c3aed;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .thinking {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #7c3aed;
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0)
+            }
+
+            30% {
+                transform: translateY(-6px)
+            }
+        }
+
+        /* Input */
+        .input-area {
+            padding: 16px 24px;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: #e0e0e0;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-area input:focus {
+            border-color: #7c3aed;
+        }
+
+        .input-area button {
+            background: #7c3aed;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .input-area button:hover {
+            background: #6d28d9;
+        }
+
+        .input-area button:disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+
+        #status {
+            font-size: 12px;
+            color: #f59e0b;
+            padding: 4px 24px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div>
+            <h1>🧠 NotesMind</h1>
+            <p style="margin-top:6px">Chat with your documents — fully offline</p>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Chunks indexed</div>
+            <div class="stat-value" id="chunk-count">—</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Model</div>
+            <div style="font-size:15px;font-weight:500;margin-top:4px">Mistral 7B</div>
+            <div style="font-size:12px;color:#888;margin-top:2px">via Ollama · fully offline</div>
+        </div>
+        <button class="clear-btn" onclick="clearChat()">🗑️ Clear conversation</button>
+    </div>
+
+    <div class="main">
+        <div class="chat-header">💬 Ask your documents anything</div>
+        <div class="messages" id="messages">
+            <div class="msg assistant">
+                <div class="avatar">🧠</div>
+                <div class="bubble">Hello! I'm ready to answer questions about your indexed documents. What would you
+                    like to know?</div>
+            </div>
+        </div>
+        <div id="status"></div>
+        <div class="input-area">
+            <input type="text" id="question" placeholder="Ask anything about your documents..."
+                onkeydown="if(event.key==='Enter') sendQuestion()" />
+            <button id="send-btn" onclick="sendQuestion()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Load chunk count
+        fetch('/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: 'ping' }) })
+        fetch('http://localhost:8000/ask').catch(() => { });
+
+        async function loadStats() {
+            try {
+                const r = await fetch('/stats');
+                const d = await r.json();
+                document.getElementById('chunk-count').textContent = d.chunks;
+            } catch (e) { }
+        }
+        loadStats();
+
+        function addMessage(role, content, sources = []) {
+            const container = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.className = `msg ${role}`;
+
+            const avatar = role === 'user' ? '👤' : '🧠';
+            let sourcesHtml = '';
+            if (sources.length > 0) {
+                sourcesHtml = `<div class="sources">
+        <span class="sources-toggle" onclick="toggleSources(this)">📄 Show ${sources.length} source(s)</span>
+        ${sources.map(s => `
+          <div class="source-item">
+            <div class="source-file">${s.filename}</div>
+            <div>${s.text}...</div>
+          </div>`).join('')}
+      </div>`;
+            }
+
+            msg.innerHTML = `
+      <div class="avatar">${avatar}</div>
+      <div class="bubble">${content}${sourcesHtml}</div>`;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addThinking() {
+            const container = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.className = 'msg assistant';
+            msg.id = 'thinking-msg';
+            msg.innerHTML = `
+      <div class="avatar">🧠</div>
+      <div class="bubble thinking">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span id="thinking-text">Searching documents...</span>
+      </div>`;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+
+            // Update thinking text
+            const texts = ['Searching documents...', 'Retrieving relevant chunks...', 'Reranking results...', 'Mistral is thinking...'];
+            let i = 0;
+            return setInterval(() => {
+                i = (i + 1) % texts.length;
+                const el = document.getElementById('thinking-text');
+                if (el) el.textContent = texts[i];
+            }, 3000);
+        }
+
+        function toggleSources(el) {
+            const items = el.parentElement.querySelectorAll('.source-item');
+            const showing = items[0].classList.contains('visible');
+            items.forEach(i => i.classList.toggle('visible', !showing));
+            el.textContent = showing ? `📄 Show ${items.length} source(s)` : `📄 Hide sources`;
+        }
+
+        async function sendQuestion() {
+            const input = document.getElementById('question');
+            const btn = document.getElementById('send-btn');
+            const q = input.value.trim();
+            if (!q) return;
+
+            addMessage('user', q);
+            input.value = '';
+            btn.disabled = true;
+
+            const interval = addThinking();
+            document.getElementById('status').textContent = '⏳ Mistral is generating a response — this may take 1-2 minutes on CPU...';
+
+            try {
+                const r = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: q })
+                });
+                const d = await r.json();
+                clearInterval(interval);
+                document.getElementById('thinking-msg')?.remove();
+                document.getElementById('status').textContent = '';
+                addMessage('assistant', d.answer, d.sources);
+            } catch (e) {
+                clearInterval(interval);
+                document.getElementById('thinking-msg')?.remove();
+                document.getElementById('status').textContent = '';
+                addMessage('assistant', 'Error: ' + e.message);
+            }
+
+            btn.disabled = false;
+            input.focus();
+        }
+
+        async function clearChat() {
+            await fetch('/clear', { method: 'POST' });
+            const container = document.getElementById('messages');
+            container.innerHTML = `
+      <div class="msg assistant">
+        <div class="avatar">🧠</div>
+        <div class="bubble">Conversation cleared! Ask me anything about your documents.</div>
+      </div>`;
+        }
+    </script>
+</body>
+
+</html>
