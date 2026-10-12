@@ -13,7 +13,7 @@ from llama_index.retrievers.bm25 import BM25Retriever
 CHROMA_DIR  = "./chroma_db"
 COLLECTION  = "notesmind"
 EMBED_MODEL = "BAAI/bge-small-en-v1.5"
-LLM_MODEL   = "mistral"
+LLM_MODEL = "llama3.2:1b"
 
 def load_query_engine():
     print("Loading embedding model...")
@@ -42,7 +42,7 @@ def load_query_engine():
     )
     hybrid_retriever = QueryFusionRetriever(
         retrievers=[vector_retriever, bm25_retriever],
-        similarity_top_k=3,
+        similarity_top_k=5,
         num_queries=1,
         mode="reciprocal_rerank",
         use_async=False
@@ -51,7 +51,7 @@ def load_query_engine():
     # ── Reranker ───────────────────────────────────────────────
     reranker = SentenceTransformerRerank(
         model="cross-encoder/ms-marco-TinyBERT-L-2-v2",
-        top_n=3
+        top_n=4
     )
 
     print("✓ Query engine ready!\n")
@@ -65,16 +65,23 @@ def chat(query: str, retriever, reranker, history: list) -> str:
     from llama_index.core.schema import QueryBundle
     nodes = reranker.postprocess_nodes(nodes, query_bundle=QueryBundle(query))
 
+    # remove duplicate chunks
+    seen, unique = set(), []
+    for n in nodes:
+        if n.text not in seen:
+            seen.add(n.text)
+            unique.append(n)
+    nodes = unique
+
     # Step 3 — build context from top chunks
-    context = "\n\n---\n\n".join([n.text for n in nodes])
+    context = "\n\n---\n\n".join(
+    [f"[Source: {n.metadata.get('filename', 'unknown')}]\n{n.text}" for n in nodes]
+)
 
     # Step 4 — build messages with history
     system_prompt = (
-    "You are a helpful assistant answering questions based on document context. "
-    "The documents may contain OCR errors, typos, or garbled text from scanning — "
-    "do your best to interpret the meaning despite imperfect text. "
-    "Answer clearly and concisely based only on what is in the context. "
-    "If the context does not contain enough information, say so honestly."
+    "Answer the question using only the context below. "
+    "If the answer is not in the context, say you don't know."
 )
     messages = [{"role": "system", "content": system_prompt}]
 
@@ -90,7 +97,7 @@ def chat(query: str, retriever, reranker, history: list) -> str:
 
     # Step 5 — call Ollama directly
     print("Thinking...")
-    response = ollama.chat(model=LLM_MODEL, messages=messages)
+    response = ollama.chat(model=LLM_MODEL, messages=messages,options={"num_ctx": 2048})   
     answer = response["message"]["content"]
 
     # Update history

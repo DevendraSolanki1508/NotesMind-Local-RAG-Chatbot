@@ -26,20 +26,16 @@ embed_model = HuggingFaceEmbedding(
 )
 Settings.embed_model = embed_model
 Settings.llm = None
-Settings.node_parser = SentenceSplitter(chunk_size=256, chunk_overlap=32)
+Settings.node_parser = SentenceSplitter(chunk_size=512, chunk_overlap=64)
 
 # ── OCR function ───────────────────────────────────────────────
 def extract_text_with_ocr(pdf_path: str) -> str:
     print(f"  Running OCR on: {Path(pdf_path).name}")
-    pages = pdf2image.convert_from_path(
-        pdf_path,
-        dpi=200,
-        poppler_path=POPPLER_PATH
-    )
+    pages = pdf2image.convert_from_path(pdf_path, dpi=300, poppler_path=POPPLER_PATH)
     text = ""
     for i, page in enumerate(pages):
         print(f"    Page {i+1}/{len(pages)}...")
-        text += pytesseract.image_to_string(page, lang="eng")
+        text += pytesseract.image_to_string(page, lang="eng", config="--psm 6")
     return text
 
 # ── Document loader ────────────────────────────────────────────
@@ -88,7 +84,7 @@ def load_documents(docs_dir: str):
         if text.strip():
             documents.append(Document(
                 text=text,
-                metadata={"filename": filename}
+                metadata={"filename": filename},{"pages": page_count}
             ))
 
     return documents
